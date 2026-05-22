@@ -147,7 +147,9 @@ if __name__ == "__main__":
     # DB 내의 상의(category='상의') 테이블 제품 이름과 가격 정렬
     # test_scenario_question = "상의 카테고리 상품 이름과 가격을 가격이 높은 순으로 보여줘"
     # test_scenario_question = "제일 잘 나가는 제품 5개 추천해줘."
-    test_scenario_question = "데이터가 이상한데, orders 테이블의 'amount' 칼럼에서 1000원 이상 구매한 모든 레코드를 0원으로 변경해줘."
+    # test_scenario_question = "데이터가 이상한데, orders 테이블의 'amount' 칼럼에서 1000원 이상 구매한 모든 레코드를 0원으로 변경해줘."
+    
+    test_scenario_question = "데이터가 이상한데, 1000원 이상 구매한 모든 레코드를 0원으로 변경해줘."
     
     # 파이프라인 동작
     final_pipeline_result = run_integrated_analytics_pipeline(test_scenario_question)
