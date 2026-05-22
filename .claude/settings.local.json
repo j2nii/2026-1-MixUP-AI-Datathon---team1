@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls ~/.Trash/ | grep -i \"src\\\\|frontend\\\\|MIXUP\" 2>/dev/null | head -20)",
+      "Read(//Users/johyeonjin/.Trash//**)",
+      "Bash(git checkout *)",
+      "Bash(git ls-tree *)",
+      "Bash(git merge *)",
+      "Bash(git push *)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s http://127.0.0.1:8000/schema)",
+      "Bash(pkill -f \"uvicorn dataset:app\")",
+      "Bash(uvicorn dataset:app --host 127.0.0.1 --port 8000)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(f'{t[\\\\\"name\\\\\"]}: {len\\(t[\\\\\"columns\\\\\"]\\)}컬럼, {t[\\\\\"rowCount\\\\\"]}행'\\) for t in d]\")",
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)"
+    ]
+  }
+}

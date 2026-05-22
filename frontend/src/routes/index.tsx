@@ -12,13 +12,13 @@ import type { QueryResult } from "@/lib/api";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lumen Analytics — 패션 이커머스 AI 분석" },
+      { title: "Query Talk — 패션 이커머스 AI 분석" },
       {
         name: "description",
         content:
           "패션 이커머스 가상 DB를 자연어로 질의하고, SQL · 결과 표 · 인터랙티브 차트를 즉시 확인할 수 있는 셀프서비스 분석 워크스페이스.",
       },
-      { property: "og:title", content: "Lumen Analytics — 패션 이커머스 AI 분석" },
+      { property: "og:title", content: "Query Talk — 패션 이커머스 AI 분석" },
       {
         property: "og:description",
         content: "데이터와 대화하세요. SQL을 생성하고, 몇 초 만에 인사이트를 얻으세요.",
@@ -66,7 +66,7 @@ function Workspace() {
             <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold gradient-text">Lumen Analytics</div>
+            <div className="text-sm font-semibold gradient-text">Query Talk</div>
             <div className="text-[10px] text-muted-foreground">패션 이커머스 · fashion_commerce</div>
           </div>
         </div>

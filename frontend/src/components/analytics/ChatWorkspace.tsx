@@ -68,9 +68,9 @@ export function ChatWorkspace({ onResult }: { onResult?: (r: QueryResult) => voi
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
         </div>
         <div className="flex-1">
-          <div className="text-sm font-semibold">분석 코파일럿</div>
+          <div className="text-sm font-semibold">Query Talk</div>
           <div className="text-[10px] text-muted-foreground truncate max-w-[260px]">
-            fashion-analyst ·{" "}
+             ·{" "}
             {USE_REAL
               ? (import.meta.env.VITE_API_BASE_URL as string)
               : "목업 모드 (VITE_API_KEY / VITE_API_BASE_URL 미설정)"}
