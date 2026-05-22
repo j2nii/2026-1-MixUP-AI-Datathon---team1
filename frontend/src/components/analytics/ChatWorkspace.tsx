@@ -3,19 +3,15 @@ import { ArrowUp, Bot, Sparkles, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { analyzePrompt, suggestedPrompts, defaultQuery, type QueryResult } from "@/lib/api";
+import { analyzePrompt, suggestedPrompts, type QueryResult } from "@/lib/api";
 
-const USE_REAL = !!(
-  (import.meta.env.VITE_API_KEY as string) && (import.meta.env.VITE_API_BASE_URL as string)
-);
+// api.ts와 동일한 조건: URL만 있으면 실서버 모드
+const USE_REAL = !!(import.meta.env.VITE_API_BASE_URL as string);
 
 type Msg = { role: "user" | "assistant"; content: string; thinking?: boolean };
 
 export function ChatWorkspace({ onResult }: { onResult?: (r: QueryResult) => void }) {
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: "user", content: "카테고리별 매출 알려줘" },
-    { role: "assistant", content: defaultQuery.insight },
-  ]);
+  const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,7 +36,9 @@ export function ChatWorkspace({ onResult }: { onResult?: (r: QueryResult) => voi
 
     analyzePrompt(v, abortRef.current.signal)
       .then((result) => {
-        onResult?.(result);
+        // chart가 없는 경우(일반 대화, 추가질문 요청 등)는 대시보드를 갱신하지 않고
+        // 챗 말풍선에만 insight 메시지를 표시한다.
+        if (result.chart) onResult?.(result);
         setMessages((m) => {
           const copy = [...m];
           copy[copy.length - 1] = { role: "assistant", content: result.insight };

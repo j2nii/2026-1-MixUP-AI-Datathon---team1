@@ -18,7 +18,8 @@ const DATASET_BASE = (import.meta.env.VITE_DATASET_URL as string | undefined) ??
 
 const API_KEY = (import.meta.env.VITE_API_KEY as string) ?? "";
 const API_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? "";
-const USE_REAL = API_KEY !== "" && API_URL !== "";
+// API_KEY는 외부 유료 API 연동 시에만 필요. 로컬 백엔드는 URL만 있으면 동작한다.
+const USE_REAL = API_URL !== "";
 
 function authHeaders(): Record<string, string> {
   return {
@@ -36,9 +37,10 @@ export async function fetchSchema(): Promise<Table[]> {
 
 // ── KPI ───────────────────────────────────────────────────────────────
 // 실제 API: GET /kpis  →  Kpi[]
+// schema와 동일한 dataset 서버에서 집계하므로 DATASET_BASE 사용
 export async function fetchKpis(): Promise<Kpi[]> {
   if (!USE_REAL) return mockKpis;
-  const res = await fetch(`${API_URL}/kpis`, { headers: authHeaders() });
+  const res = await fetch(`${API_URL}/kpis`);
   if (!res.ok) throw new Error(`/kpis ${res.status}`);
   return res.json();
 }
@@ -50,7 +52,7 @@ export async function analyzePrompt(
   signal?: AbortSignal,
 ): Promise<QueryResult> {
   if (!USE_REAL) return runMockQuery(prompt);
-  const res = await fetch(`${API_URL}/analyze`, {
+  const res = await fetch(`${DATASET_BASE}/analyze`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ prompt }),

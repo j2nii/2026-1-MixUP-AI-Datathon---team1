@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { PanelLeft, Sparkles } from "lucide-react";
+import { BarChart2, PanelLeft, Sparkles } from "lucide-react";
 import { SchemaSidebar } from "@/components/analytics/SchemaSidebar";
 import { ChatWorkspace } from "@/components/analytics/ChatWorkspace";
 import { SqlDebugPanel } from "@/components/analytics/SqlDebugPanel";
 import { ResultsDashboard } from "@/components/analytics/ResultsDashboard";
 import { ResizableSplit } from "@/components/analytics/ResizableSplit";
 import { Button } from "@/components/ui/button";
-import { defaultQuery, type QueryResult } from "@/lib/api";
+import type { QueryResult } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,10 +28,27 @@ export const Route = createFileRoute("/")({
   component: Workspace,
 });
 
+function EmptyDashboard() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-4 text-muted-foreground select-none">
+      <div
+        className="h-14 w-14 rounded-2xl grid place-items-center opacity-20"
+        style={{ background: "var(--gradient-primary)" }}
+      >
+        <BarChart2 className="h-7 w-7 text-primary-foreground" />
+      </div>
+      <div className="text-center space-y-1">
+        <p className="text-sm font-medium text-foreground/40">아직 분석 결과가 없습니다</p>
+        <p className="text-xs text-muted-foreground/60">왼쪽 채팅창에 질문을 입력하면<br />차트와 데이터가 여기에 표시됩니다</p>
+      </div>
+    </div>
+  );
+}
+
 function Workspace() {
   const [sidebar, setSidebar] = useState(true);
   const [runKey, setRunKey] = useState(0);
-  const [result, setResult] = useState<QueryResult>(defaultQuery);
+  const [result, setResult] = useState<QueryResult | null>(null);
 
   const handleResult = (r: QueryResult) => {
     setResult(r);
@@ -81,10 +98,10 @@ function Workspace() {
 
             <ResizableSplit direction="vertical" initial={0.62} min={0.3} max={0.85}>
               <div className="h-full">
-                <ResultsDashboard result={result} />
+                {result ? <ResultsDashboard result={result} /> : <EmptyDashboard />}
               </div>
               <div className="h-full border-t border-border/40">
-                <SqlDebugPanel runKey={runKey} result={result} />
+                {result && <SqlDebugPanel runKey={runKey} result={result} />}
               </div>
             </ResizableSplit>
           </ResizableSplit>
