@@ -79,6 +79,7 @@
 
 ## 시스템 아키텍처
 
+<img src="./images/system_architecture.png" width="600" alt="시스템 아키텍처 이미지">
 
 
 ### 데이터 흐름 (Data Flow)
