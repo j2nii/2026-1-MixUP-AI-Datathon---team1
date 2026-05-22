@@ -89,6 +89,7 @@ app = FastAPI(title="Self-service Analytics 가상 DB 실행 서버")
 class SQLRequest(BaseModel):
     sql: str
 
+
 @app.post("/execute-sql")
 def execute_sql(request: SQLRequest):
     # [흐름도 4단계: DB 실행 레이어]
