@@ -3,12 +3,10 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   BarChart3,
-  Download,
   LineChart,
   PieChart,
   Search,
   ScatterChart,
-  ImageDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,21 +95,6 @@ export function ResultsDashboard({ result }: { result: QueryResult }) {
   const paged = filtered.slice(page * pageSize, page * pageSize + pageSize);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
-  function downloadCsv() {
-    const headers = result.columns.map((c) => c.key);
-    const lines = [
-      result.columns.map((c) => c.label).join(","),
-      ...result.rows.map((r) => headers.map((h) => r[h]).join(",")),
-    ];
-    const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "query_result.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   const chartData = useMemo(() => {
     const { x, y, name } = result.chart;
     const color = "rgba(56, 100, 220, 1)";
@@ -161,14 +144,6 @@ export function ResultsDashboard({ result }: { result: QueryResult }) {
             <p className="text-xs text-muted-foreground mt-1">
               가상 SQL 엔진 · {result.rows.length}개 행 반환 · 패션 이커머스 DB
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={downloadCsv}>
-              <Download className="h-3.5 w-3.5" /> CSV
-            </Button>
-            <Button size="sm" variant="outline">
-              <ImageDown className="h-3.5 w-3.5" /> 차트 내보내기
-            </Button>
           </div>
         </div>
 
