@@ -1,14 +1,19 @@
 import sqlite3
 import pandas as pd
 from datetime import datetime
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import create_engine, text
 
+# =========================================================================
+# 1. 가상 데이터베이스(SQLite) 구축 및 적재 레이어
+# =========================================================================
 def init_ecommerce_database():
-    # 1. 인메모리 SQLite 연결 생성
-    # Lovable 내부에 내장하거나 백엔드 파이썬 서버에 올릴 메모리 DB
-    conn = sqlite3.connect(':memory:', check_same_thread=False)
-
-    # 2. 가상 데이터셋 (Mock Data) 정의
-    # [Table 1] Users
+    # 인메모리 SQLite 연결 생성 (SQLAlchemy 엔진 활용)
+    # 멀티스레드 환경에서도 FastAPI와 안정적으로 통신하기 위해 부가 옵션 설정
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    
+    # 가상 데이터셋 (Mock Data) 정의
     users_data = {
         'user_id': [1001, 1002, 1003, 1004, 1005],
         'username': ['이민지', '박준서', '최수아', '정우진', '한지원'],
@@ -18,18 +23,16 @@ def init_ecommerce_database():
         'signup_date': ['2025-03-01', '2025-06-15', '2025-11-20', '2026-01-10', '2026-02-05']
     }
 
-    # [Table 2] Products
     products_data = {
         'product_id': [2001, 2002, 2003, 2004, 2005, 2006],
         'product_name': ['오버핏 셔츠', '윈드브레이커 아우터', '와이드 데님 팬츠', '링클프리 슬랙스', '미니 크로스백', '캔버스 스니커즈'],
         'category': ['상의', '아우터', '바지', '바지', '잡화', '잡화'],
         'price': [39000, 89000, 49000, 45000, 55000, 65000],
         'stock_quantity': [120, 45, 80, 150, 30, 60],
-        'view_count': [1520, 3400, 2100, 980, 1850, 1200], # Router Agent가 '인기 상품' 판단할 때 사용
+        'view_count': [1520, 3400, 2100, 980, 1850, 1200], 
         'register_date': ['2025-05-01', '2025-09-10', '2025-10-01', '2025-12-15', '2026-01-20', '2026-03-02']
     }
 
-    # [Table 3] Coupons
     coupons_data = {
         'coupon_id': ['CP01', 'CP02', 'CP03'],
         'coupon_name': ['웰컴 신규가입 쿠폰', '봄맞이 아우터 세일', 'VIP 감사 쿠폰'],
@@ -37,7 +40,6 @@ def init_ecommerce_database():
         'min_order_amount': [30000, 70000, 50000]
     }
 
-    # [Table 4] Orders (2026년 4월~5월 데이터 집중 배치하여 '지난달/이번달' 조회 유도)
     orders_data = {
         'order_id': [30001, 30002, 30003, 30004, 30005],
         'user_id': [1001, 1003, 1004, 1002, 1005],
@@ -48,7 +50,6 @@ def init_ecommerce_database():
         'order_date': ['2026-04-12', '2026-04-28', '2026-04-30', '2026-05-11', '2026-05-18']
     }
 
-    # [Table 5] Order Items
     order_items_data = {
         'item_id': [40001, 40002, 40003, 40004, 40005, 40006],
         'order_id': [30001, 30002, 30003, 30003, 30004, 30005],
@@ -57,26 +58,54 @@ def init_ecommerce_database():
         'price': [39000, 49000, 89000, 45000, 89000, 65000]
     }
 
-    # [Table 6] Reviews
     reviews_data = {
         'review_id': [5001, 5002, 5003, 5004],
         'product_id': [2001, 2002, 2003, 2002],
         'user_id': [1001, 1004, 1003, 1002],
-        'review_score': [5, 4, 5, 2], # Router Agent가 '리뷰 좋은 상품' 판단할 때 사용
+        'review_score': [5, 4, 5, 2], 
         'comment': ['핏이 딱 좋아요', '따뜻한데 약간 무거워요', '인생 데님입니다', '사이즈 미스네요'],
         'write_date': ['2026-04-15', '2026-05-02', '2026-05-03', '2026-05-14']
     }
 
-    # 3. Pandas를 통해 SQLite 테이블로 벌크 인서트 (적재)
-    pd.DataFrame(users_data).to_sql('users', conn, index=False, if_exists='replace')
-    pd.DataFrame(products_data).to_sql('products', conn, index=False, if_exists='replace')
-    pd.DataFrame(coupons_data).to_sql('coupons', conn, index=False, if_exists='replace')
-    pd.DataFrame(orders_data).to_sql('orders', conn, index=False, if_exists='replace')
-    pd.DataFrame(order_items_data).to_sql('order_items', conn, index=False, if_exists='replace')
-    pd.DataFrame(reviews_data).to_sql('reviews', conn, index=False, if_exists='replace')
+    # Pandas 데이터프레임을 엔진을 통해 SQLite 메모리에 로드
+    pd.DataFrame(users_data).to_sql('users', engine, index=False, if_exists='replace')
+    pd.DataFrame(products_data).to_sql('products', engine, index=False, if_exists='replace')
+    pd.DataFrame(coupons_data).to_sql('coupons', engine, index=False, if_exists='replace')
+    pd.DataFrame(orders_data).to_sql('orders', engine, index=False, if_exists='replace')
+    pd.DataFrame(order_items_data).to_sql('order_items', engine, index=False, if_exists='replace')
+    pd.DataFrame(reviews_data).to_sql('reviews', engine, index=False, if_exists='replace')
 
     print("🚀 가상 패션 이커머스 DB가 인메모리에 성공적으로 적재되었습니다.")
-    return conn
+    return engine
 
-# 데이터베이스 엔진 초기화 테스트
-db_conn = init_ecommerce_database()
+# 전역 변수로 데이터베이스 엔진 기동
+db_engine = init_ecommerce_database()
+
+# =========================================================================
+# 2. FastAPI API 서버 및 에이전트 인터페이스 레이어
+# =========================================================================
+app = FastAPI(title="Self-service Analytics 가상 DB 실행 서버")
+
+class SQLRequest(BaseModel):
+    sql: str
+
+@app.post("/execute-sql")
+def execute_sql(request: SQLRequest):
+    # [흐름도 4단계: DB 실행 레이어]
+    try:
+        # 1차 백엔드 SQL 가드레일 (데이터 변형/삭제 목적의 해킹 차단)
+        forbidden_keywords = ["drop", "delete", "update", "insert", "alter", "truncate"]
+        query_lower = request.sql.lower()
+        if any(keyword in query_lower for keyword in forbidden_keywords):
+            raise HTTPException(status_code=400, detail="보안 위반: 데이터 무결성을 위해 읽기(SELECT) 전용 권한만 허용됩니다.")
+
+        # SQLite 인메모리 DB 실행 후 Pandas로 결과 수집
+        with db_engine.connect() as connection:
+            df = pd.read_sql_query(text(request.sql), connection)
+            
+        # Lovable(웹 프론트)이 바로 화면에 뿌릴 수 있도록 JSON(Dict 배열) 형태로 리턴
+        return df.to_dict(orient="records")
+
+    except Exception as e:
+        # [흐름도 4단계: SQL 문법 에러 발생 시 에러 전문을 반환 -> 자가 치유 에이전트의 피드백 소스가 됨]
+        raise HTTPException(status_code=500, detail=str(e))
