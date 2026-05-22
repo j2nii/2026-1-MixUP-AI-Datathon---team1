@@ -90,21 +90,40 @@ clarification 필요 없는 경우:
     return json.loads(response)
         
 def run_Create_SQL_Agent(user_question: str, error_message: str = ""):
+    # dataset.py의 실제 인메모리 패션 이커머스 DB 스펙 정보로 대체합니다.
     schema = """
+table 'products'
+- product_id VARCHAR (Primary Key)
+- product_name VARCHAR (상품 이름)
+- category VARCHAR (카테고리: 상의, 하의, 아우터, 스니커즈 등)
+- price INT (가격)
+- stock INT
+- registration_date DATE
+
+table 'users'
+- user_id INT (Primary Key)
+- username VARCHAR
+- age INT
+- gender VARCHAR
+- membership_level VARCHAR
+- signup_date DATE
 
 table 'orders'
-
-columns:
-- category VARCHAR
-- amount INT
-- user_id VARCHAR
+- order_id INT (Primary Key)
+- user_id INT
 - order_date DATE
+- total_amount INT
+- status VARCHAR
 
+table 'order_items'
+- order_item_id INT (Primary Key)
+- order_id INT
+- product_id VARCHAR
+- quantity INT
+- price INT
 """
     
-    
     sql_system_prompt = f"""
-
     너는 Text-to-SQL 전문 Agent이다.
 
     아래 DB Schema를 참고하여
@@ -137,12 +156,13 @@ columns:
     5.
     오직 순수 SQL만 출력
 
+    6.
+    반드시 결과물 앞뒤에 어떠한 부연설명, 괄호, 설명(예: "Note:", "Actually")도 작성하지 말 것.
+
     ===================================== """
 
     if error_message:
-
         user_prompt = f"""
-
         사용자 질문:
         {user_question}
 
@@ -151,23 +171,18 @@ columns:
 
         이전 에러를 분석하여
         올바른 SQL로 수정하라.
-
         """
-
     else:
-
         user_prompt = user_question
 
-    
     sql_query = call_solar_agent(
-
         system_prompt=sql_system_prompt,
-
         user_prompt=user_prompt,
-
         temperature=0.0
     )
 
+    # 마크다운 백틱 및 공백 정제 가드레일 추가
+    sql_query = sql_query.replace("```sql", "").replace("```json", "").replace("```", "")
     return sql_query.strip()
 
 
