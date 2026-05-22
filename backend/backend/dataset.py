@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.pool import StaticPool
 
 # =========================================================================
 # 1. 가상 데이터베이스(SQLite) 구축 및 적재 레이어
@@ -12,7 +13,13 @@ from sqlalchemy import create_engine, inspect, text
 def init_ecommerce_database():
     # 인메모리 SQLite 연결 생성 (SQLAlchemy 엔진 활용)
     # 멀티스레드 환경에서도 FastAPI와 안정적으로 통신하기 위해 부가 옵션 설정
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    # StaticPool: 모든 커넥션이 동일한 in-memory DB를 공유하도록 강제
+    # 없으면 pandas.to_sql()이 쓴 커넥션과 inspector가 쓰는 커넥션이 달라서 테이블이 안 보임
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     
     # 가상 데이터셋 (Mock Data) 정의
     users_data = {
