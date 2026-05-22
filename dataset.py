@@ -3,12 +3,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import create_engine, inspect as sa_inspect, text
+from sqlalchemy.pool import StaticPool
 
 # =========================================================================
 # 1. 가상 데이터베이스(SQLite) 구축 및 적재 레이어
 # =========================================================================
 def init_ecommerce_database():
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
 
     users_data = {
         'user_id': [1001, 1002, 1003, 1004, 1005],

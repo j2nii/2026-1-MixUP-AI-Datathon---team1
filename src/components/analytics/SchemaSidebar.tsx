@@ -69,9 +69,13 @@ function TableNode({ table, defaultOpen }: { table: Table; defaultOpen?: boolean
 export function SchemaSidebar() {
   const [schema, setSchema] = useState<Table[]>([]);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchSchema().then(setSchema);
+    setError(null);
+    fetchSchema()
+      .then(setSchema)
+      .catch(() => setError("dataset.py 서버에 연결할 수 없습니다.\nuvicorn dataset:app 실행 여부를 확인하세요."));
   }, []);
 
   const filtered = useMemo(() => {
@@ -114,7 +118,12 @@ export function SchemaSidebar() {
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-2">
-          {schema.length === 0 && (
+          {error && (
+            <div className="text-xs text-destructive bg-destructive/10 rounded-lg p-3 whitespace-pre-line">
+              {error}
+            </div>
+          )}
+          {!error && schema.length === 0 && (
             <div className="space-y-2">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-10 rounded-lg animate-shimmer" />

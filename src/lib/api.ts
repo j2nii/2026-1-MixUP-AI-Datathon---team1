@@ -1,22 +1,23 @@
 // =====================================================================
-// API 레이어 — mock ↔ 실제 API 전환점
+// API 레이어
 //
-// 실제 API 연결 방법:
-//   .env 파일에 아래 두 줄 추가
-//   VITE_API_KEY=your-api-key
-//   VITE_API_BASE_URL=https://your-api.com
+// DB 스키마/SQL 실행: dataset.py FastAPI 서버 (VITE_SQL_API_URL 기준)
+//   기본값: http://127.0.0.1:8000  (uvicorn dataset:app)
 //
-// 두 값이 모두 있으면 실제 API를, 없으면 목업 데이터를 사용합니다.
+// 분석 쿼리/KPI: VITE_API_KEY + VITE_API_BASE_URL 모두 설정 시 실제 API,
+//               미설정 시 목업 데이터 사용
 // =====================================================================
 
 import type { Table, Kpi, QueryResult } from "./types";
-import { mockSchema } from "@/data/schema";
 import { mockKpis } from "@/data/kpis";
 import { runMockQuery, mockDefaultQuery } from "./mock-queries";
 import { suggestedPrompts } from "@/data/suggested-prompts";
 
-const API_KEY  = (import.meta.env.VITE_API_KEY  as string) ?? "";
-const API_URL  = (import.meta.env.VITE_API_BASE_URL as string) ?? "";
+// dataset.py 프록시 경로 (Vite dev: /api → 127.0.0.1:8000, 배포 시 실제 URL로 교체)
+const DATASET_BASE = (import.meta.env.VITE_DATASET_URL as string | undefined) ?? "/api";
+
+const API_KEY = (import.meta.env.VITE_API_KEY as string) ?? "";
+const API_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? "";
 const USE_REAL = API_KEY !== "" && API_URL !== "";
 
 function authHeaders(): Record<string, string> {
@@ -26,11 +27,9 @@ function authHeaders(): Record<string, string> {
   };
 }
 
-// ── DB 스키마 ─────────────────────────────────────────────────────────
-// 실제 API: GET /schema  →  Table[]
+// ── DB 스키마 (dataset.py GET /schema) ───────────────────────────────
 export async function fetchSchema(): Promise<Table[]> {
-  if (!USE_REAL) return mockSchema;
-  const res = await fetch(`${API_URL}/schema`, { headers: authHeaders() });
+  const res = await fetch(`${DATASET_BASE}/schema`);
   if (!res.ok) throw new Error(`/schema ${res.status}`);
   return res.json();
 }
